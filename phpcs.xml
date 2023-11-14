@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<ruleset name="Custom Standard" namespace="MyProject\CS\Standard">
+    <description>Coding standard</description>
+    <file>./src</file>
+    <rule ref="PSR12" />
+</ruleset>
