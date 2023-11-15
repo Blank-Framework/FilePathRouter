@@ -22,12 +22,14 @@ final class RoutesPathNotFoundException extends Exception
      */
     public function __construct(string $path = null)
     {
-        $message = $path === null
-            ? 'Routes path could not be found'
-            : sprintf(
+        if ($path === null) {
+            $message = 'Routes path could not be found';
+        } else {
+            $message = sprintf(
                 'Routes path %s could not be found',
                 $path
             );
+        }
 
         parent::__construct($message);
     }
