@@ -1,16 +1,21 @@
 # FilePathRouter
 
-The Blank Framework FilePathRouter is an efficient and straightforward router library designed for routing HTTP requests
-in PHP applications. It adeptly maps a requested path, such as `/blog/posts`, to its corresponding directory and file,
-e.g., `/blog/posts/index.php`.
+FilePathRouter is a simple routing package that maps a path such as `/blog/posts` to the directory `/blog/posts`. If
+that directory exists, it executes the `index.php` file inside.
 
 ## Usage
 
-To utilise this library, instantiate the `FilePathRouter` class and pass the **absolute** path to the directory that
-contains your routes. Here's an example that assumes your `index.php` is located in the same directory as this README:
+To start, instantiate the `FilePathRouter` class and pass the absolute path to the directory where your routes will be
+located. If it is in the root of your project directory is could be like the code snippet below:
 
 ```php
 $router = new FilePathRouter(__DIR__ . '/routes');
+```
+
+To route your requests, get the requested path for example /blog and pass it into the function routeRequest as shown below:
+
+```php
+$router->routeRequest('/blog');
 ```
 
 ## Directory Structure and Routing
@@ -22,12 +27,8 @@ requested.
 
 ## Exceptions
 
-FilePathRouter may throw two types of exceptions:
-
-- RoutesPathNotFoundException: Thrown if the routes directory specified in the constructor does not exist.
-- RouteNotFoundException: Thrown if the requested route does not exist.
-
-These exceptions are instrumental in diagnosing issues related to nonexistent route paths or directories.
+If the routes path you provided in the constructor does not exist, the router will throw a `RoutesPathNotFoundException`.
+If the requested route could not be found, the router will throw a `RouteNotFoundException`.
 
 ## Getting Started
 
