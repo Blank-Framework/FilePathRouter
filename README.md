@@ -29,8 +29,3 @@ requested.
 
 If the routes path you provided in the constructor does not exist, the router will throw a `RoutesPathNotFoundException`.
 If the requested route could not be found, the router will throw a `RouteNotFoundException`.
-
-## Getting Started
-
-To integrate FilePathRouter into your project, include this library in your codebase and follow the usage guidelines to
-set up your routing. Ensure your directory structure is congruent with your routing paths for optimal functionality.

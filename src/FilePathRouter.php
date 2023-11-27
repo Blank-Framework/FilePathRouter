@@ -7,7 +7,7 @@ namespace BlankFramework\FilePathRouter;
 use BlankFramework\FilePathRouter\Exception\RouteNotFoundException;
 use BlankFramework\FilePathRouter\Exception\RoutesPathNotFoundException;
 
-final class FilePathRouter
+class FilePathRouter
 {
     private string $routesPath;
 
@@ -23,6 +23,7 @@ final class FilePathRouter
 
     /**
      * @return string The absolute path to the index.php file that you should call in your application.
+     * @throws RouteNotFoundException
      */
     public function routeRequest(string $path): string
     {
@@ -40,6 +41,9 @@ final class FilePathRouter
     }
 
 
+    /**
+     * @throws RoutesPathNotFoundException
+     */
     private function setRoutesPath(string $routesPath): void
     {
         if (!$this->routeExists($routesPath)) {
@@ -62,6 +66,9 @@ final class FilePathRouter
     }
 
 
+    /**
+     * @throws RouteNotFoundException
+     */
     private function findRoute(string $path): string
     {
         $pathParts = explode('/', trim($path, '/'));
