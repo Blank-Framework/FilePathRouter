@@ -23,6 +23,7 @@ class FilePathRouter
 
     /**
      * @return string The absolute path to the index.php file that you should call in your application.
+     *
      * @throws RouteNotFoundException
      */
     public function routeRequest(string $path): string
