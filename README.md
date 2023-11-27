@@ -1,24 +1,31 @@
 # FilePathRouter
-The Blank Framework FilePathRouter is an extremely simple router library for routing requests. Essentially all it does
-is take a path like /blog/posts and routes it to a directory like /blog/posts/index.php.
 
-To use it you need to simply instantiate the class and pass the **full** path into the constructor to the directory
-where your routes will be. An example as from the this project might be assuming your index.php is where the README is
+FilePathRouter is a simple routing package that maps a path such as `/blog/posts` to the directory `/blog/posts`. If
+that directory exists, it executes the `index.php` file inside.
+
+## Usage
+
+To start, instantiate the `FilePathRouter` class and pass the absolute path to the directory where your routes will be
+located. If it is in the root of your project directory is could be like the code snippet below:
 
 ```php
 $router = new FilePathRouter(__DIR__ . '/routes');
 ```
 
-This will map your routes directory to the directory `/routes`. That is it really! After that you simply need to find
-the route by calling the following code and providing the requested URL path like this:
+To route your requests, get the requested path for example /blog and pass it into the function routeRequest as shown below:
 
 ```php
 $router->routeRequest('/blog');
 ```
-Paths are then done through folders. Home is routed to the `index.php` in the `/routes` directory. To create the path 
-`/blog` create a directory `blog` inside `/routes` and inside the `blog` directory add an `index.php` file. This file
-will be executed whenever the path `/blog` is requested.
 
-##  Exceptions
+## Directory Structure and Routing
+
+FilePathRouter's routing mechanism is dependent on your project's directory structure. The home route (/) is mapped to
+the index.php file in the /routes directory. To create a new path, such as /blog, simply create a directory named blog
+within /routes. Place an index.php file in this new directory, and this file will be executed whenever the /blog path is
+requested.
+
+## Exceptions
+
 If the routes path you provided in the constructor does not exist, the router will throw a `RoutesPathNotFoundException`.
 If the requested route could not be found, the router will throw a `RouteNotFoundException`.

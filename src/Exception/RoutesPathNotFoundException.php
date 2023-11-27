@@ -1,17 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BlankFramework\FilePathRouter\Exception;
 
 use Exception;
 
-class RoutesPathNotFoundException extends \Exception
+final class RoutesPathNotFoundException extends Exception
 {
-    public function __construct(?string $path = null)
+    public function __construct(string $path = null)
     {
-        if (is_null($path)) {
+        if ($path === null) {
             $message = 'Routes path could not be found';
         } else {
-            $message = sprintf('Routes path %s could not be found', $path);
+            $message = sprintf(
+                'Routes path %s could not be found',
+                $path
+            );
         }
 
         parent::__construct($message);

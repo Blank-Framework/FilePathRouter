@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BlankFramework\FilePathRouter;
 
 use BlankFramework\FilePathRouter\Exception\RouteNotFoundException;
@@ -9,20 +11,21 @@ class FilePathRouter
 {
     private string $routesPath;
 
+
+    /**
+     * @throws RoutesPathNotFoundException
+     */
     public function __construct(string $routesPath)
     {
         $this->setRoutesPath($routesPath);
     }
 
-    private function setRoutesPath(string $routesPath): void
-    {
-        if (!$this->routeExists($routesPath)) {
-            throw new RoutesPathNotFoundException($routesPath);
-        }
 
-        $this->routesPath = rtrim($routesPath, '/');
-    }
-
+    /**
+     * @return string The absolute path to the index.php file that you should call in your application.
+     *
+     * @throws RouteNotFoundException
+     */
     public function routeRequest(string $path): string
     {
         if ($this->isHome($path)) {
@@ -38,16 +41,35 @@ class FilePathRouter
         return $this->findRoute($path);
     }
 
+
+    /**
+     * @throws RoutesPathNotFoundException
+     */
+    private function setRoutesPath(string $routesPath): void
+    {
+        if (!$this->routeExists($routesPath)) {
+            throw new RoutesPathNotFoundException($routesPath);
+        }
+
+        $this->routesPath = rtrim($routesPath, '/');
+    }
+
+
     private function isHome(string $path): bool
     {
         return $path === '/' || $path === '';
     }
+
 
     private function homeRoute(): string
     {
         return $this->makeRoute($this->routesPath);
     }
 
+
+    /**
+     * @throws RouteNotFoundException
+     */
     private function findRoute(string $path): string
     {
         $pathParts = explode('/', trim($path, '/'));
@@ -58,16 +80,17 @@ class FilePathRouter
 
             if ($this->routeExists($routePath)) {
                 return $this->makeRoute($routePath);
-            } else {
-                throw new RouteNotFoundException($path);
             }
+
+            throw new RouteNotFoundException($path);
         }
 
-        foreach ($pathParts as $part) {
-            $tempRoutePath = sprintf('%s/%s', $routePath, $part);
+        foreach ($pathParts as $pathPart) {
+            $tempRoutePath = sprintf('%s/%s', $routePath, $pathPart);
 
             if ($this->routeExists($tempRoutePath)) {
                 $routePath = $tempRoutePath;
+
                 continue;
             }
 
@@ -75,6 +98,7 @@ class FilePathRouter
 
             if ($this->routeExists($tempRoutePath)) {
                 $routePath = $tempRoutePath;
+
                 continue;
             }
 
@@ -84,13 +108,15 @@ class FilePathRouter
         return $this->makeRoute($routePath);
     }
 
+
     private function makeRoute(string $dirPath): string
     {
         return sprintf('%s/index.php', $dirPath);
     }
 
+
     private function routeExists(string $routePath): bool
     {
-        return file_exists($routePath) && is_dir($routePath);
+        return is_dir($routePath);
     }
 }
