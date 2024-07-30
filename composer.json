@@ -18,7 +18,8 @@
     "require-dev": {
         "phpstan/phpstan": "^1.10",
         "squizlabs/php_codesniffer": "^3.7",
-        "pestphp/pest": "^2.24"
+        "pestphp/pest": "^2.24",
+        "nyholm/psr7": "^1.8"
     },
     "config": {
         "allow-plugins": {
