@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace BlankFramework\FilePathRouter;
 
+use BlankFramework\FilePathRouter\Exception\InvalidRouteException;
 use BlankFramework\FilePathRouter\Exception\RouteNotFoundException;
 use BlankFramework\FilePathRouter\Exception\RoutesPathNotFoundException;
+use BlankFramework\RoutingInterfaces\RouteInterface;
+use BlankFramework\RoutingInterfaces\SimpleRouterInterface;
+use Psr\Http\Message\RequestInterface;
 
-class FilePathRouter
+class FilePathRouter implements SimpleRouterInterface
 {
     private string $routesPath;
 
@@ -22,12 +26,13 @@ class FilePathRouter
 
 
     /**
-     * @return string The absolute path to the index.php file that you should call in your application.
-     *
      * @throws RouteNotFoundException
+     * @throws InvalidRouteException
      */
-    public function routeRequest(string $path): string
+    public function routeRequest(RequestInterface $request): RouteInterface
     {
+        $path = $request->getUri()->getPath();
+
         if ($this->isHome($path)) {
             $route = $this->homeRoute();
 
@@ -35,7 +40,7 @@ class FilePathRouter
                 throw new RouteNotFoundException($path);
             }
 
-            return $route;
+            return $this->loadRoute($route);
         }
 
         return $this->findRoute($path);
@@ -69,8 +74,9 @@ class FilePathRouter
 
     /**
      * @throws RouteNotFoundException
+     * @throws InvalidRouteException
      */
-    private function findRoute(string $path): string
+    private function findRoute(string $path): RouteInterface
     {
         $pathParts = explode('/', trim($path, '/'));
         $routePath = $this->routesPath;
@@ -79,7 +85,7 @@ class FilePathRouter
             $routePath .= sprintf('/%s', $pathParts[0]);
 
             if ($this->routeExists($routePath)) {
-                return $this->makeRoute($routePath);
+                return $this->loadRoute($this->makeRoute($routePath));
             }
 
             throw new RouteNotFoundException($path);
@@ -105,7 +111,7 @@ class FilePathRouter
             throw new RouteNotFoundException($path);
         }
 
-        return $this->makeRoute($routePath);
+        return $this->loadRoute($this->makeRoute($routePath));
     }
 
 
@@ -118,5 +124,19 @@ class FilePathRouter
     private function routeExists(string $routePath): bool
     {
         return is_dir($routePath);
+    }
+
+    /**
+     * @throws InvalidRouteException
+     */
+    private function loadRoute(string $filePath): RouteInterface
+    {
+        $route = require($filePath);
+
+        if (!$route instanceof RouteInterface) {
+            throw new InvalidRouteException();
+        }
+
+        return $route;
     }
 }

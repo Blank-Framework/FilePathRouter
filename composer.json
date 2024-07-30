@@ -28,5 +28,8 @@
     "scripts": {
         "test": "pest",
         "test:coverage": "pest --coverage --min=95 --coverage-cobertura coverage/cobertura.xml"
+    },
+    "require": {
+        "blank-framework/routing-interfaces": "^1.0"
     }
 }
