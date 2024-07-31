@@ -133,7 +133,7 @@ class FilePathRouter implements SimpleRouterInterface
     {
         $route = require($filePath);
 
-        if (!$route instanceof RouteInterface) {
+        if (!($route instanceof RouteInterface)) {
             throw new InvalidRouteException();
         }
 
