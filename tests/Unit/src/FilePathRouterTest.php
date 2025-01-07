@@ -72,6 +72,24 @@ it('Can find the same route with a different dynamic parameter', function () {
     expect($route)->toBeInstanceOf(RouteInterface::class);
 });
 
+it('Throws an RouteNotFoundException when the directory has no index.php', function () {
+    $routesPath = __DIR__ . '/../../../routes';
+
+    $filePathRouter = new FilePathRouter($routesPath);
+    $request = (new Psr17Factory())->createRequest('GET', 'http://example.com/empty');
+
+    $filePathRouter->routeRequest($request);
+})->throws(RouteNotFoundException::class, 'Route could not be found for the path /empty');
+
+it('Throws an RouteNotFoundException when the directory more than 1 level has no index.php', function () {
+    $routesPath = __DIR__ . '/../../../routes';
+
+    $filePathRouter = new FilePathRouter($routesPath);
+    $request = (new Psr17Factory())->createRequest('GET', 'http://example.com/empty/another-empty');
+
+    $filePathRouter->routeRequest($request);
+})->throws(RouteNotFoundException::class, 'Route could not be found for the path /empty');
+
 it('will throw exception when it cannot find second+ segment', function () {
     $routesPath = __DIR__ . '/../../../routes';
 
