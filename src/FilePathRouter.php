@@ -85,7 +85,11 @@ class FilePathRouter implements SimpleRouterInterface
             $routePath .= sprintf('/%s', $pathParts[0]);
 
             if ($this->routeExists($routePath)) {
-                return $this->loadRoute($this->makeRoute($routePath));
+                $route = $this->makeRoute($routePath);
+                if (!file_exists($route)) {
+                    throw new RouteNotFoundException($path);
+                }
+                return $this->loadRoute($route);
             }
 
             throw new RouteNotFoundException($path);
@@ -111,7 +115,12 @@ class FilePathRouter implements SimpleRouterInterface
             throw new RouteNotFoundException($path);
         }
 
-        return $this->loadRoute($this->makeRoute($routePath));
+        $route = $this->makeRoute($routePath);
+        if (!file_exists($route)) {
+            throw new RouteNotFoundException($path);
+        }
+
+        return $this->loadRoute($route);
     }
 
 
