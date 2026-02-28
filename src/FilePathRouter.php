@@ -10,17 +10,19 @@ use BlankFramework\FilePathRouter\Exception\RoutesPathNotFoundException;
 use BlankFramework\RoutingInterfaces\RouteInterface;
 use BlankFramework\RoutingInterfaces\SimpleRouterInterface;
 use Psr\Http\Message\RequestInterface;
+use Psr\SimpleCache\CacheInterface;
 
 class FilePathRouter implements SimpleRouterInterface
 {
     private string $routesPath;
 
-
     /**
      * @throws RoutesPathNotFoundException
      */
-    public function __construct(string $routesPath)
-    {
+    public function __construct(
+        string $routesPath,
+        private ?CacheInterface $cache = null,
+    ) {
         $this->setRoutesPath($routesPath);
     }
 
@@ -33,6 +35,12 @@ class FilePathRouter implements SimpleRouterInterface
     {
         $path = $request->getUri()->getPath();
 
+        $route = $this->checkCache($path);
+
+        if ($route !== null) {
+            return $route;
+        }
+
         if ($this->isHome($path)) {
             $route = $this->homeRoute();
 
@@ -40,10 +48,17 @@ class FilePathRouter implements SimpleRouterInterface
                 throw new RouteNotFoundException($path);
             }
 
-            return $this->loadRoute($route);
+            $route = $this->loadRoute($route);
+
+            $this->cacheRoute($path, $route);
+
+            return $route;
         }
 
-        return $this->findRoute($path);
+        $route = $this->findRoute($path);
+
+        $this->cacheRoute($path, $route);
+        return $route;
     }
 
 
@@ -147,5 +162,51 @@ class FilePathRouter implements SimpleRouterInterface
         }
 
         return $route;
+    }
+
+    /**
+     * Checks whether a cache interface was given.
+     * @since 3.0.0
+     */
+    private function hasCache(): bool {
+        return ! $this->cache instanceof CacheInterface;
+    }
+
+    /**
+     * This method checks the cache using the given file path to see if the route has been accessed before.
+     * If it has been accessed before, and is in the cache, then it will return the cached route. Otherwise
+     * it will return null.
+     *
+     * @since 3.0.0
+     */
+    private function checkCache(string $path): ?RouteInterface {
+        //  Cache is optional, so if there is no cache handler, return null
+        if (! $this->cache instanceof CacheInterface) {
+            return null;
+        }
+        //  Start with hashing the path which will be our cache key
+        $cacheKey = hash('sha3-512', $path);
+        //  Lookup if the key exists
+        if (!$this->cache->has($cacheKey)) {
+            return null;
+        }
+
+        return $this->cache->get($cacheKey);
+    }
+
+    /**
+     * This method does the opposite of checkCache and caches the route. For a predetermined length of time.
+     *
+     * @since 3.0.0
+     */
+    private function cacheRoute(string $path, RouteInterface $route): void {
+        //  Cache is optional, so if there is no cache handler, return null
+        if (! $this->cache instanceof CacheInterface) {
+            return;
+        }
+
+        $cacheKey = hash('sha3-512', $path);
+
+        $this->cache->set($cacheKey, $route, 3600);
     }
 }
