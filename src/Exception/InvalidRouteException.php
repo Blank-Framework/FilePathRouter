@@ -6,7 +6,8 @@ namespace BlankFramework\FilePathRouter\Exception;
 
 final class InvalidRouteException extends \Exception
 {
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct("Route must return a RequestHandlerInterface");
     }
 }

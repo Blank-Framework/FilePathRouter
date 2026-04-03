@@ -32,13 +32,7 @@ class FilePathRouter implements SimpleRouterInterface
         $path = $request->getUri()->getPath();
 
         if ($this->isHome($path)) {
-            $route = $this->homeRoute();
-
-            if (!file_exists($route)) {
-                throw new RouteNotFoundException($path);
-            }
-
-            return $this->loadRoute($route);
+            return $this->resolveAndLoad($this->routesPath, $path);
         }
 
         return $this->findRoute($path);
@@ -61,11 +55,6 @@ class FilePathRouter implements SimpleRouterInterface
         return $path === '/' || $path === '';
     }
 
-    private function homeRoute(): string
-    {
-        return $this->makeRoute($this->routesPath);
-    }
-
     /**
      * @throws RouteNotFoundException
      * @throws InvalidRouteException
@@ -75,21 +64,11 @@ class FilePathRouter implements SimpleRouterInterface
         $pathParts = explode('/', trim($path, '/'));
         $routePath = $this->routesPath;
 
-        if (count($pathParts) === 1) {
-            $routePath .= sprintf('/%s', $pathParts[0]);
-
-            if ($this->routeExists($routePath)) {
-                $route = $this->makeRoute($routePath);
-                if (!file_exists($route)) {
-                    throw new RouteNotFoundException($path);
-                }
-                return $this->loadRoute($route);
+        foreach ($pathParts as $pathPart) {
+            if ($pathPart === '..' || $pathPart === '.') {
+                throw new RouteNotFoundException($path);
             }
 
-            throw new RouteNotFoundException($path);
-        }
-
-        foreach ($pathParts as $pathPart) {
             $tempRoutePath = sprintf('%s/%s', $routePath, $pathPart);
 
             if ($this->routeExists($tempRoutePath)) {
@@ -109,17 +88,25 @@ class FilePathRouter implements SimpleRouterInterface
             throw new RouteNotFoundException($path);
         }
 
-        $route = $this->makeRoute($routePath);
-        if (!file_exists($route)) {
-            throw new RouteNotFoundException($path);
-        }
-
-        return $this->loadRoute($route);
+        return $this->resolveAndLoad($routePath, $path);
     }
 
     private function makeRoute(string $dirPath): string
     {
         return sprintf('%s/index.php', $dirPath);
+    }
+
+    /**
+     * @throws RouteNotFoundException
+     * @throws InvalidRouteException
+     */
+    private function resolveAndLoad(string $routePath, string $originalPath): RequestHandlerInterface
+    {
+        $route = $this->makeRoute($routePath);
+        if (!file_exists($route)) {
+            throw new RouteNotFoundException($originalPath);
+        }
+        return $this->loadRoute($route);
     }
 
     private function routeExists(string $routePath): bool

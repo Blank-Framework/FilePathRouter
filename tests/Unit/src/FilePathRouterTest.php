@@ -7,25 +7,25 @@ use BlankFramework\FilePathRouter\FilePathRouter;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Http\Server\RequestHandlerInterface;
 
-it('Can find routes directory', function () {
+it('can find routes directory', function () {
     $routesPath = __DIR__ . '/../../../routes';
 
     new FilePathRouter($routesPath);
 })->throwsNoExceptions();
 
-it('can throws exception with invalid routes directory', function () {
+it('throws exception with invalid routes directory', function () {
     $routesPath = __DIR__ . '/not-found';
 
     new FilePathRouter($routesPath);
 })->throws(RoutesPathNotFoundException::class, sprintf('Routes path %s could not be found', __DIR__ . '/not-found'));
 
-it('can strip all right slashes if more than one is accidentally added', function () {
+it('strips all right slashes if more than one is accidentally added', function () {
     $routesPath = __DIR__ . '/../../../routes///';
 
     new FilePathRouter($routesPath);
 })->throwsNoExceptions();
 
-it('Can find home route', function () {
+it('can find home route', function () {
     $routesPath = __DIR__ . '/../../../routes';
 
     $filePathRouter = new FilePathRouter($routesPath);
@@ -36,7 +36,7 @@ it('Can find home route', function () {
     expect($route)->toBeInstanceOf(RequestHandlerInterface::class);
 });
 
-it('Can find path with one segment', function () {
+it('can find path with one segment', function () {
     $routesPath = __DIR__ . '/../../../routes';
 
     $filePathRouter = new FilePathRouter($routesPath);
@@ -47,7 +47,7 @@ it('Can find path with one segment', function () {
     expect($route)->toBeInstanceOf(RequestHandlerInterface::class);
 });
 
-it('will throw exception when route is not found', function () {
+it('throws exception when route is not found', function () {
     $routesPath = __DIR__ . '/../../../routes';
 
     $filePathRouter = new FilePathRouter($routesPath);
@@ -56,7 +56,7 @@ it('will throw exception when route is not found', function () {
     $route = $filePathRouter->routeRequest($request);
 })->throws(RouteNotFoundException::class, 'Route could not be found for the path /not-found');
 
-it('Can find routes with dynamic parameters', function () {
+it('finds routes with dynamic parameters', function () {
     $routesPath = __DIR__ . '/../../../routes';
 
     $filePathRouter = new FilePathRouter($routesPath);
@@ -67,7 +67,7 @@ it('Can find routes with dynamic parameters', function () {
     expect($route)->toBeInstanceOf(RequestHandlerInterface::class);
 });
 
-it('Can find the same route with a different dynamic parameter', function () {
+it('finds the same route with a different dynamic parameter', function () {
     $routesPath = __DIR__ . '/../../../routes';
 
     $filePathRouter = new FilePathRouter($routesPath);
@@ -78,7 +78,7 @@ it('Can find the same route with a different dynamic parameter', function () {
     expect($route)->toBeInstanceOf(RequestHandlerInterface::class);
 });
 
-it('Throws an RouteNotFoundException when the directory has no index.php', function () {
+it('throws an RouteNotFoundException when the directory has no index.php', function () {
     $routesPath = __DIR__ . '/../../../routes';
 
     $filePathRouter = new FilePathRouter($routesPath);
@@ -87,7 +87,7 @@ it('Throws an RouteNotFoundException when the directory has no index.php', funct
     $filePathRouter->routeRequest($request);
 })->throws(RouteNotFoundException::class, 'Route could not be found for the path /empty');
 
-it('Throws an RouteNotFoundException when the directory more than 1 level has no index.php', function () {
+it('throws an RouteNotFoundException when the directory more than 1 level has no index.php', function () {
     $routesPath = __DIR__ . '/../../../routes';
 
     $filePathRouter = new FilePathRouter($routesPath);
@@ -96,7 +96,7 @@ it('Throws an RouteNotFoundException when the directory more than 1 level has no
     $filePathRouter->routeRequest($request);
 })->throws(RouteNotFoundException::class, 'Route could not be found for the path /empty');
 
-it('will throw exception when it cannot find second+ segment', function () {
+it('throws exception when it cannot find second+ segment', function () {
     $routesPath = __DIR__ . '/../../../routes';
 
     $filePathRouter = new FilePathRouter($routesPath);
@@ -105,7 +105,7 @@ it('will throw exception when it cannot find second+ segment', function () {
     $filePathRouter->routeRequest($request);
 })->throws(RouteNotFoundException::class, 'Route could not be found for the path /blog/my-best-post/not-found');
 
-it('will throw invalid route when it finds the file but does not return a route interface', function () {
+it('throws invalid route when it finds the file but does not return a route interface', function () {
     $routesPath = __DIR__ . '/../../../routes';
 
     $filePathRouter = new FilePathRouter($routesPath);
@@ -113,3 +113,13 @@ it('will throw invalid route when it finds the file but does not return a route 
 
     $filePathRouter->routeRequest($request);
 })->throws(InvalidRouteException::class);
+
+it('throw RouteNotFoundException when directory traversal is attempted', function () {
+    $routesPath = __DIR__ . '/../../../routes';
+
+    $filePathRouter = new FilePathRouter($routesPath);
+    $request = (new Psr17Factory())->createServerRequest('GET', 'http://example.com/../public');
+
+
+    $filePathRouter->routeRequest($request);
+})->throws(RouteNotFoundException::class, 'Route could not be found for the path /../public');
