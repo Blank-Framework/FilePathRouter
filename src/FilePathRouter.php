@@ -82,6 +82,10 @@ class FilePathRouter implements SimpleRouterInterface
         $routePath = $this->routesPath;
 
         if (count($pathParts) === 1) {
+            if ($pathParts[0] === '..' || $pathParts[0] === '.') {
+                throw new RouteNotFoundException($path);
+            }
+
             $routePath .= sprintf('/%s', $pathParts[0]);
 
             if ($this->routeExists($routePath)) {
@@ -96,6 +100,10 @@ class FilePathRouter implements SimpleRouterInterface
         }
 
         foreach ($pathParts as $pathPart) {
+            if ($pathPart === '..' || $pathPart === '.') {
+                throw new RouteNotFoundException($path);
+            }
+
             $tempRoutePath = sprintf('%s/%s', $routePath, $pathPart);
 
             if ($this->routeExists($tempRoutePath)) {
