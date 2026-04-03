@@ -7,14 +7,13 @@ namespace BlankFramework\FilePathRouter;
 use BlankFramework\FilePathRouter\Exception\InvalidRouteException;
 use BlankFramework\FilePathRouter\Exception\RouteNotFoundException;
 use BlankFramework\FilePathRouter\Exception\RoutesPathNotFoundException;
-use BlankFramework\RoutingInterfaces\RouteInterface;
 use BlankFramework\RoutingInterfaces\SimpleRouterInterface;
-use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 
 class FilePathRouter implements SimpleRouterInterface
 {
     private string $routesPath;
-
 
     /**
      * @throws RoutesPathNotFoundException
@@ -24,28 +23,20 @@ class FilePathRouter implements SimpleRouterInterface
         $this->setRoutesPath($routesPath);
     }
 
-
     /**
      * @throws RouteNotFoundException
      * @throws InvalidRouteException
      */
-    public function routeRequest(RequestInterface $request): RouteInterface
+    public function routeRequest(ServerRequestInterface $request): RequestHandlerInterface
     {
         $path = $request->getUri()->getPath();
 
         if ($this->isHome($path)) {
-            $route = $this->homeRoute();
-
-            if (!file_exists($route)) {
-                throw new RouteNotFoundException($path);
-            }
-
-            return $this->loadRoute($route);
+            return $this->resolveAndLoad($this->routesPath, $path);
         }
 
         return $this->findRoute($path);
     }
-
 
     /**
      * @throws RoutesPathNotFoundException
@@ -59,43 +50,25 @@ class FilePathRouter implements SimpleRouterInterface
         $this->routesPath = rtrim($routesPath, '/');
     }
 
-
     private function isHome(string $path): bool
     {
         return $path === '/' || $path === '';
     }
 
-
-    private function homeRoute(): string
-    {
-        return $this->makeRoute($this->routesPath);
-    }
-
-
     /**
      * @throws RouteNotFoundException
      * @throws InvalidRouteException
      */
-    private function findRoute(string $path): RouteInterface
+    private function findRoute(string $path): RequestHandlerInterface
     {
         $pathParts = explode('/', trim($path, '/'));
         $routePath = $this->routesPath;
 
-        if (count($pathParts) === 1) {
-            $routePath .= sprintf('/%s', $pathParts[0]);
-
-            if ($this->routeExists($routePath)) {
-                $route = $this->makeRoute($routePath);
-                if (!file_exists($route)) {
-                    throw new RouteNotFoundException($path);
-                }
-                return $this->loadRoute($route);
+        foreach ($pathParts as $pathPart) {
+            if ($pathPart === '..' || $pathPart === '.') {
+                throw new RouteNotFoundException($path);
             }
 
-            throw new RouteNotFoundException($path);
-        }
-
-        foreach ($pathParts as $pathPart) {
             $tempRoutePath = sprintf('%s/%s', $routePath, $pathPart);
 
             if ($this->routeExists($tempRoutePath)) {
@@ -115,20 +88,26 @@ class FilePathRouter implements SimpleRouterInterface
             throw new RouteNotFoundException($path);
         }
 
-        $route = $this->makeRoute($routePath);
-        if (!file_exists($route)) {
-            throw new RouteNotFoundException($path);
-        }
-
-        return $this->loadRoute($route);
+        return $this->resolveAndLoad($routePath, $path);
     }
-
 
     private function makeRoute(string $dirPath): string
     {
         return sprintf('%s/index.php', $dirPath);
     }
 
+    /**
+     * @throws RouteNotFoundException
+     * @throws InvalidRouteException
+     */
+    private function resolveAndLoad(string $routePath, string $originalPath): RequestHandlerInterface
+    {
+        $route = $this->makeRoute($routePath);
+        if (!file_exists($route)) {
+            throw new RouteNotFoundException($originalPath);
+        }
+        return $this->loadRoute($route);
+    }
 
     private function routeExists(string $routePath): bool
     {
@@ -138,11 +117,11 @@ class FilePathRouter implements SimpleRouterInterface
     /**
      * @throws InvalidRouteException
      */
-    private function loadRoute(string $filePath): RouteInterface
+    private function loadRoute(string $filePath): RequestHandlerInterface
     {
         $route = require($filePath);
 
-        if (!($route instanceof RouteInterface)) {
+        if (!($route instanceof RequestHandlerInterface)) {
             throw new InvalidRouteException();
         }
 

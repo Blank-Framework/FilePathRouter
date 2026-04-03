@@ -8,7 +8,7 @@ use Exception;
 
 final class RouteNotFoundException extends Exception
 {
-    public function __construct(string $path = null)
+    public function __construct(?string $path = null)
     {
         if ($path === null) {
             $message = 'Route could not be found for the requested path';
