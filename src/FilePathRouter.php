@@ -7,9 +7,9 @@ namespace BlankFramework\FilePathRouter;
 use BlankFramework\FilePathRouter\Exception\InvalidRouteException;
 use BlankFramework\FilePathRouter\Exception\RouteNotFoundException;
 use BlankFramework\FilePathRouter\Exception\RoutesPathNotFoundException;
-use BlankFramework\RoutingInterfaces\RouteInterface;
 use BlankFramework\RoutingInterfaces\SimpleRouterInterface;
-use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 
 class FilePathRouter implements SimpleRouterInterface
 {
@@ -29,7 +29,7 @@ class FilePathRouter implements SimpleRouterInterface
      * @throws RouteNotFoundException
      * @throws InvalidRouteException
      */
-    public function routeRequest(RequestInterface $request): RouteInterface
+    public function routeRequest(ServerRequestInterface $request): RequestHandlerInterface
     {
         $path = $request->getUri()->getPath();
 
@@ -76,7 +76,7 @@ class FilePathRouter implements SimpleRouterInterface
      * @throws RouteNotFoundException
      * @throws InvalidRouteException
      */
-    private function findRoute(string $path): RouteInterface
+    private function findRoute(string $path): RequestHandlerInterface
     {
         $pathParts = explode('/', trim($path, '/'));
         $routePath = $this->routesPath;
@@ -138,11 +138,11 @@ class FilePathRouter implements SimpleRouterInterface
     /**
      * @throws InvalidRouteException
      */
-    private function loadRoute(string $filePath): RouteInterface
+    private function loadRoute(string $filePath): RequestHandlerInterface
     {
         $route = require($filePath);
 
-        if (!($route instanceof RouteInterface)) {
+        if (!($route instanceof RequestHandlerInterface)) {
             throw new InvalidRouteException();
         }
 
