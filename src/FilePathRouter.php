@@ -15,7 +15,6 @@ class FilePathRouter implements SimpleRouterInterface
 {
     private string $routesPath;
 
-
     /**
      * @throws RoutesPathNotFoundException
      */
@@ -23,7 +22,6 @@ class FilePathRouter implements SimpleRouterInterface
     {
         $this->setRoutesPath($routesPath);
     }
-
 
     /**
      * @throws RouteNotFoundException
@@ -46,7 +44,6 @@ class FilePathRouter implements SimpleRouterInterface
         return $this->findRoute($path);
     }
 
-
     /**
      * @throws RoutesPathNotFoundException
      */
@@ -59,18 +56,15 @@ class FilePathRouter implements SimpleRouterInterface
         $this->routesPath = rtrim($routesPath, '/');
     }
 
-
     private function isHome(string $path): bool
     {
         return $path === '/' || $path === '';
     }
 
-
     private function homeRoute(): string
     {
         return $this->makeRoute($this->routesPath);
     }
-
 
     /**
      * @throws RouteNotFoundException
@@ -123,12 +117,10 @@ class FilePathRouter implements SimpleRouterInterface
         return $this->loadRoute($route);
     }
 
-
     private function makeRoute(string $dirPath): string
     {
         return sprintf('%s/index.php', $dirPath);
     }
-
 
     private function routeExists(string $routePath): bool
     {
