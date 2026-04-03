@@ -54,6 +54,10 @@ class FilePathRouter
         $routePath = $this->routesPath;
 
         if (count($pathParts) === 1) {
+            if ($pathParts[0] === '..' || $pathParts[0] === '.') {
+                throw new RouteNotFoundException($path);
+            }
+
             $routePath .= sprintf('/%s', $pathParts[0]);
 
             if ($this->routeExists($routePath)) {
@@ -64,6 +68,10 @@ class FilePathRouter
         }
 
         foreach ($pathParts as $part) {
+            if ($part === '..' || $part === '.') {
+                throw new RouteNotFoundException($path);
+            }
+
             $tempRoutePath = sprintf('%s/%s', $routePath, $part);
 
             if ($this->routeExists($tempRoutePath)) {
